@@ -24,7 +24,7 @@ function RootLayoutNav() {
       if (user && !inAuthGroup) {
         // Jika user sudah login dan TIDAK berada di halaman utama,
         // paksa arahkan ke halaman utama.
-        router.replace('/(tabs)');
+        router.replace('/home');
       } else if (!user) {
         // Jika user belum login, paksa arahkan ke halaman login.
         // Ini akan berjalan bahkan jika pengguna mencoba membuka halaman lain.

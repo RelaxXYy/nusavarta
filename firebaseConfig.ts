@@ -13,6 +13,7 @@ const firebaseConfig = {
   measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
+
 // Inisialisasi Firebase
 const app = initializeApp(firebaseConfig);
 
