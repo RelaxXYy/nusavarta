@@ -1,15 +1,17 @@
 {
   "compilerOptions": {
     "target": "es2022",
-    "module": "commonjs",
-    "lib": ["es2022"],
+    "module": "Node16",
+    "lib": [
+      "es2022"
+    ],
     "outDir": "./dist",
     "rootDir": "./api",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node",
+    "moduleResolution": "node16",
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true
   },
@@ -20,5 +22,6 @@
     "node_modules",
     "dist",
     ".vercel"
-  ]
+  ],
+  "extends": "expo/tsconfig.base"
 }

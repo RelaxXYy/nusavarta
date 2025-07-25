@@ -4,51 +4,27 @@ import { Feather } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import React, { useRef, useState } from 'react';
-import { Animated, Easing, FlatList, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, Vibration, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Alert, Animated, Easing, FlatList, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, Vibration, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '@/firebaseConfig';
 
-// Data dummy untuk tampilan - ini akan kita ganti dengan data dari Firestore nanti
-const landmarks = [
-    {
-        id: '1',
-        title: 'Gedung Sate',
-        location: 'Gedung Sate, Jl. Diponegoro No.22, Citarum',
-        image: require('@/assets/images/gedung-sate.png'),
-        description: 'Selamat datang di ikon kebanggaan kota Bandung, Gedung Sate! Coba perhatikan kemegahan arsitektur di hadapan kita ini. Dibangun pada tahun 1920, gedung ini adalah mahakarya yang memadukan gaya Eropa dan sentuhan Nusantara. Lihatlah menara di puncaknya, ada ornamen yang menyerupai tusuk sate, bukan? Itu bukanlah hiasan biasa, melainkan simbol biaya pembangunannya yang mencapai enam juta Gulden, satu tusuk untuk setiap satu juta Gulden. Gedung yang dulunya merupakan kantor pusat pemerintahan Hindia Belanda ini juga menjadi saksi bisu perjuangan heroik tujuh pemuda yang gugur mempertahankannya pada masa revolusi, yang kini namanya diabadikan dalam sebuah monumen. Mari kita lanjutkan perjalanan kita untuk mengagumi lebih dekat perpaduan arsitektur Italia, Spanyol, hingga atap yang terinspirasi dari Pura di Bali, sambil mengenang sejarah panjang yang tersimpan di setiap sudutnya.'
-    },
-    {
-        id: '2',
-        title: 'Gedung Sate',
-        location: 'Gedung Sate, Jl. Diponegoro No.22, Citarum',
-        image: require('@/assets/images/gedung-sate.png'),
-        description: 'Selamat datang di ikon kebanggaan kota Bandung, Gedung Sate! Coba perhatikan kemegahan arsitektur di hadapan kita ini. Dibangun pada tahun 1920, gedung ini adalah mahakarya yang memadukan gaya Eropa dan sentuhan Nusantara.'
-    },
-];
-const cultures = [
-    {
-        id: '1',
-        title: 'Sanggar Supubaka',
-        location: 'Sanggar Supubaka, Jl. Budaya No.15, Bandung',
-        image: require('@/assets/images/sanggar.png'),
-        description: 'Sanggar Supubaka adalah pusat kebudayaan tradisional yang melestarikan seni dan budaya Sunda. Di sini Anda dapat menyaksikan berbagai pertunjukan tari tradisional, musik angklung, dan berbagai kesenian lokal yang telah turun-temurun.'
-    },
-    // ... item lainnya
-];
-const museums = [
-    {
-        id: '1',
-        title: 'Museum Geologi',
-        location: 'Museum Geologi, Jl. Diponegoro No.57, Cihaur Geulis, Kec. Cibeunying Kaler, Kota Bandung',
-        image: require('@/assets/images/museum.png'),
-        description: 'Selamat datang di Museum Geologi Bandung! Di sinilah perjalanan kita melintasi lorong waktu dimulai, jauh sebelum ada kota, bahkan sebelum ada manusia. Museum ini bukan sekedar tempat menyimpan batu dan fosil, tapi merupakan gerbang menuju sejarah bumi dan kehidupan yang membentuk kepulauan kita. Museum ini bukan sekedar tempat menyimpan benda-benda tua, melainkan sebuah buku raksasa yang menceritakan berbagai dinamis dan luar biasanya planet yang kita tinggali di Mari kita jelajahi sejarah kehidupan!'
-    },
-    // ... item lainnya
-];
+// Tipe data untuk story place
+type StoryPlace = {
+    id: string;
+    title: string;
+    location: string;
+    image: string; // Sekarang kita harapkan URL string dari backend/Firestore
+    description: string;
+    category: string;
+};
 
+// Komponen-komponen UI (Modal, ItemCard, Section) tetap sama,
+// hanya perlu penyesuaian kecil untuk menerima URL gambar.
 const DetailModal = ({ visible, item, onClose }: {
     visible: boolean,
-    item: { title: string, location: string, image: any, description: string } | null,
+    item: StoryPlace | null,
     onClose: () => void
 }) => {
     if (!item) return null;
@@ -72,7 +48,8 @@ const DetailModal = ({ visible, item, onClose }: {
                     </TouchableOpacity>
 
                     <View style={styles.modalImageContainer}>
-                        <Image source={item.image} style={styles.modalImage} />
+                        {/* Menggunakan uri untuk memuat gambar dari URL */}
+                        <Image source={{ uri: item.image }} style={styles.modalImage} />
                         <LinearGradient
                             colors={['transparent', 'rgba(0,0,0,0.6)']}
                             style={styles.modalImageGradient}
@@ -95,74 +72,183 @@ const DetailModal = ({ visible, item, onClose }: {
 };
 
 const ItemCard = ({ item, onPress }: {
-    item: { title: string, image: any },
+    item: StoryPlace,
     onPress: () => void
 }) => (
     <TouchableOpacity style={styles.cardContainer} onPress={onPress}>
-        <Image source={item.image} style={styles.cardImage} />
+        <Image source={{ uri: item.image }} style={styles.cardImage} />
         <LinearGradient colors={['transparent', 'rgba(0,0,0,0.8)']} style={styles.cardGradient} />
         <Text style={styles.cardTitle}>{item.title}</Text>
     </TouchableOpacity>
 );
 const Section = ({ title, data, onItemPress }: {
     title: string,
-    data: any[],
-    onItemPress: (item: any) => void
-}) => (
-    <View style={styles.sectionContainer}>
-        <Text style={styles.sectionTitle}>{title}</Text>
-        <FlatList
-            data={data}
-            renderItem={({ item }) => <ItemCard item={item} onPress={() => onItemPress(item)} />}
-            keyExtractor={item => item.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 16 }}
-        />
-    </View>
-);
+    data: StoryPlace[],
+    onItemPress: (item: StoryPlace) => void
+}) => {
+    if (!data || data.length === 0) {
+        return null; // Jangan tampilkan section jika tidak ada data
+    }
+    return (
+        <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>{title}</Text>
+            <FlatList
+                data={data}
+                renderItem={({ item }) => <ItemCard item={item} onPress={() => onItemPress(item)} />}
+                keyExtractor={item => item.id}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingHorizontal: 16 }}
+            />
+        </View>
+    );
+};
+
 
 export default function HomeScreen() {
     const colorScheme = useColorScheme();
     const themeColors = Colors[colorScheme ?? 'light'];
     const router = useRouter();
 
+    // State untuk data dinamis dari backend
+    const [landmarks, setLandmarks] = useState<StoryPlace[]>([]);
+    const [cultures, setCultures] = useState<StoryPlace[]>([]);
+    const [museums, setMuseums] = useState<StoryPlace[]>([]);
+    const [temples, setTemples] = useState<StoryPlace[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
     const [modalVisible, setModalVisible] = useState(false);
-    const [selectedItem, setSelectedItem] = useState<{
-        title: string,
-        location: string,
-        image: any,
-        description: string
-    } | null>(null);
+    const [selectedItem, setSelectedItem] = useState<StoryPlace | null>(null);
 
     const [searchText, setSearchText] = useState('');
     
     const contentFadeAnim = useRef(new Animated.Value(0)).current;
 
-    React.useEffect(() => {
-        Animated.timing(contentFadeAnim, {
-            toValue: 1,
-            duration: 800,
-            easing: Easing.out(Easing.quad),
-            useNativeDriver: true,
-        }).start();
+    // **FUNGSI BARU**: Mengambil data langsung dari Firestore
+    useEffect(() => {
+        const fetchStoryPlaces = async () => {
+            try {
+                console.log('Fetching story places from Firestore...');
+                
+                // Fetch all story places from Firestore
+                const querySnapshot = await getDocs(collection(db, 'story_places'));
+                const allPlaces: StoryPlace[] = [];
+                
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    allPlaces.push({
+                        id: doc.id,
+                        title: data.title || '',
+                        location: data.location || '',
+                        image: data.image || '',
+                        description: data.description || '',
+                        category: data.category || 'landmark'
+                    });
+                });
+                
+                // Group by category
+                const landmarks = allPlaces.filter(place => place.category === 'landmark');
+                const cultures = allPlaces.filter(place => place.category === 'culture');
+                const museums = allPlaces.filter(place => place.category === 'museum');
+                const temples = allPlaces.filter(place => place.category === 'temple');
+                
+                setLandmarks(landmarks);
+                setCultures(cultures);
+                setMuseums(museums);
+                setTemples(temples);
+                
+                console.log('Data loaded from Firestore:', {
+                    landmarks: landmarks.length,
+                    cultures: cultures.length,
+                    museums: museums.length,
+                    temples: temples.length,
+                    total: allPlaces.length
+                });
+                
+            } catch (error) {
+                console.error("Error fetching story places from Firestore:", error);
+                
+                // Fallback data untuk development/testing
+                const fallbackData = {
+                    landmarks: [
+                        {
+                            id: "1",
+                            title: "Gedung Sate",
+                            location: "Bandung, Jawa Barat",
+                            image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400",
+                            description: "Gedung Sate adalah ikon Kota Bandung yang dibangun pada masa kolonial Belanda tahun 1920. Dinamakan Gedung Sate karena bentuk menara yang menyerupai tusuk sate.",
+                            category: "landmark" as const
+                        }
+                    ],
+                    cultures: [
+                        {
+                            id: "2",
+                            title: "Batik Indonesia",
+                            location: "Jawa (Solo, Yogyakarta, Pekalongan)",
+                            image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400",
+                            description: "Batik adalah seni membuat kain dengan teknik resist wax yang telah diakui UNESCO sebagai Warisan Budaya Tak Benda Dunia.",
+                            category: "culture" as const
+                        }
+                    ],
+                    museums: [
+                        {
+                            id: "3",
+                            title: "Museum Nasional Indonesia",
+                            location: "Jakarta Pusat, DKI Jakarta",
+                            image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400",
+                            description: "Museum Nasional Indonesia adalah museum arkeologi, sejarah, etnografi, dan geografi yang terletak di Jakarta Pusat.",
+                            category: "museum" as const
+                        }
+                    ],
+                    temples: [
+                        {
+                            id: "4",
+                            title: "Candi Borobudur",
+                            location: "Magelang, Jawa Tengah",
+                            image: "https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=400",
+                            description: "Candi Buddha terbesar di dunia yang dibangun pada abad ke-8-9. Merupakan warisan dunia UNESCO.",
+                            category: "temple" as const
+                        }
+                    ]
+                };
+                
+                console.log("Using fallback data for development");
+                setLandmarks(fallbackData.landmarks);
+                setCultures(fallbackData.cultures);
+                setMuseums(fallbackData.museums);
+                setTemples(fallbackData.temples);
+                
+                Alert.alert(
+                    "Info", 
+                    "Menggunakan data contoh. Tambahkan data ke Firestore collection 'story_places' untuk data dinamis."
+                );
+            } finally {
+                setIsLoading(false);
+                // Animasikan konten masuk setelah loading selesai
+                Animated.timing(contentFadeAnim, {
+                    toValue: 1,
+                    duration: 800,
+                    easing: Easing.out(Easing.quad),
+                    useNativeDriver: true,
+                }).start();
+            }
+        };
+
+        fetchStoryPlaces();
     }, [contentFadeAnim]);
 
     const handleSearchSubmit = () => {
         if (searchText.trim()) {
             Vibration.vibrate(50);
-            
-            // Mengirim pesan ke halaman chat
             router.push({
-                pathname: '/(tabs)/chat', 
+                pathname: '/(tabs)/chat',
                 params: { message: searchText.trim() }
             });
-
             setSearchText('');
         }
     };
 
-    const handleItemPress = (item: any) => {
+    const handleItemPress = (item: StoryPlace) => {
         setSelectedItem(item);
         setModalVisible(true);
     };
@@ -179,6 +265,7 @@ export default function HomeScreen() {
                 showsVerticalScrollIndicator={false}
                 contentInsetAdjustmentBehavior="never"
             >
+                {/* Header (tetap sama) */}
                 <View style={styles.headerContainer}>
                     <Image
                         source={require('@/assets/images/borobudur-bg.png')}
@@ -199,6 +286,7 @@ export default function HomeScreen() {
                     </View>
                 </View>
 
+                {/* Content */}
                 <View style={[styles.contentContainer, { backgroundColor: themeColors.background }]}>
                     <View style={styles.searchBoxContainer}>
                         <Feather name="search" size={20} color="#8E8E93" style={styles.searchIcon} />
@@ -213,23 +301,29 @@ export default function HomeScreen() {
                         />
                     </View>
 
-                    <Animated.View
-                        style={[
-                            { opacity: contentFadeAnim },
-                            {
-                                transform: [{
-                                    translateY: contentFadeAnim.interpolate({
-                                        inputRange: [0, 1],
-                                        outputRange: [30, 0],
-                                    })
-                                }]
-                            }
-                        ]}
-                    >
-                        <Section title="Surrounding Landmarks" data={landmarks} onItemPress={handleItemPress} />
-                        <Section title="Surrounding Cultures" data={cultures} onItemPress={handleItemPress} />
-                        <Section title="Surrounding Museums" data={museums} onItemPress={handleItemPress} />
-                    </Animated.View>
+                    {isLoading ? (
+                        <ActivityIndicator size="large" color={themeColors.tint} style={{ marginTop: 50 }} />
+                    ) : (
+                        <Animated.View
+                            style={[
+                                { opacity: contentFadeAnim },
+                                {
+                                    transform: [{
+                                        translateY: contentFadeAnim.interpolate({
+                                            inputRange: [0, 1],
+                                            outputRange: [30, 0],
+                                        })
+                                    }]
+                                }
+                            ]}
+                        >
+                            {/* Menggunakan state dinamis */}
+                            <Section title="Surrounding Landmarks" data={landmarks} onItemPress={handleItemPress} />
+                            <Section title="Surrounding Cultures" data={cultures} onItemPress={handleItemPress} />
+                            <Section title="Surrounding Museums" data={museums} onItemPress={handleItemPress} />
+                            <Section title="Sacred Temples" data={temples} onItemPress={handleItemPress} />
+                        </Animated.View>
+                    )}
                 </View>
             </ScrollView>
 
@@ -347,13 +441,11 @@ const styles = StyleSheet.create({
         position: 'absolute',
         bottom: 12,
         left: 16,
-        right: 16,
     },
     modalTitle: {
         color: 'white',
         fontSize: 18,
         fontWeight: '600',
-        textAlign: 'center',
     },
     modalContent: {
         padding: 16,

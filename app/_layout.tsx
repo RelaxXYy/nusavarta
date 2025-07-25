@@ -6,7 +6,6 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
-import RouteScreen from './screens/RouteScreen';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 
 // Mencegah splash screen hilang secara otomatis
@@ -47,16 +46,15 @@ function RootLayoutNav() {
         {/* Halaman utama aplikasi (dengan tab) */}
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen 
           name="screens/RouteScreen" 
-          component={RouteScreen} // Daftarkan komponennya
           options={{ 
             headerShown: true, // Tampilkan header
             title: 'Rute Wisata Budaya', // Judul di header
             headerBackTitle: 'Kembali', // Teks tombol kembali di iOS
           }} 
         />
-        <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen name="register" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>

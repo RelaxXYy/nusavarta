@@ -1,0 +1,27 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Koleksi 'users': Pengguna hanya bisa melihat dan mengubah datanya sendiri.
+    match /users/{userId} {
+      allow read, update, delete: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null;
+    }
+
+    // Koleksi 'story_places': Semua pengguna bisa membaca (untuk hackathon demo)
+    match /story_places/{placeId} {
+      allow read: if true; // Allow public read for demo
+      allow write: if true; // Allow public write for demo
+    }
+
+    // Koleksi 'messages': Chat messages untuk demo hackathon
+    match /messages/{messageId} {
+      allow read, write: if true; // Allow public access for demo
+    }
+
+    // Sub-koleksi 'trips': Pengguna hanya bisa mengakses riwayat perjalanannya sendiri.
+    match /users/{userId}/trips/{tripId} {
+      allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
