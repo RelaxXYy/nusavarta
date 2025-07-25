@@ -4,5 +4,9 @@
     "api/*.ts": {
       "runtime": "@vercel/node@3.0.0"
     }
+  },
+  "env": {
+    "GEMINI_API_KEY": "@gemini_api_key",
+    "MAPTILER_API_KEY": "@maptiler_api_key"
   }
 }

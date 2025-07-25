@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
-    "target": "es2018",
+    "target": "es2022",
     "module": "commonjs",
-    "lib": ["es2018"],
+    "lib": ["es2022"],
     "outDir": "./dist",
-    "rootDir": "./",
+    "rootDir": "./api",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -14,11 +14,11 @@
     "resolveJsonModule": true
   },
   "include": [
-    "api/**/*",
-    "src/**/*"
+    "api/**/*"
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    ".vercel"
   ]
 }
