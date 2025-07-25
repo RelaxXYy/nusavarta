@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import chatRouter from './routes/chat.router';
+import placesRouter from './routes/places.router';
 
 dotenv.config();
 
@@ -16,7 +17,6 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api', chatRouter);
+app.use('/api', placesRouter);
 
-app.listen(port, () => {
-    console.log(`[server]: Server AI Garudie aktif di http://localhost:${port}`);
-});
+export default app;
