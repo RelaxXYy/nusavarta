@@ -1,23 +1,29 @@
 import React, { useState } from 'react';
 import { View, Pressable, Text as RNText, StyleSheet, Alert, TextInput, Image } from 'react-native';
 import { Text as ThemedText, View as ThemedView } from '../components/Themed';
-import { handleLogin, handleGoogleSignIn } from '../lib/auth';
-import { Link } from 'expo-router';
+import { handleSignUp } from '../lib/auth';
+import { useRouter } from 'expo-router';
 
-export default function LoginScreen() {
+export default function RegisterScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const router = useRouter();
 
-  const onLoginPress = async () => {
+  const onSignUpPress = async () => {
     if (!email || !password) {
       Alert.alert("Error", "Email dan password harus diisi.");
       return;
     }
-    const { user, error } = await handleLogin(email, password);
+    const { user, error } = await handleSignUp(email, password);
     if (error) {
-      Alert.alert("Login Gagal", error);
+      Alert.alert("Pendaftaran Gagal", error);
+    } else {
+      Alert.alert(
+        "Sukses", 
+        "Akun berhasil dibuat! Anda akan diarahkan ke halaman login.",
+        [{ text: "OK", onPress: () => router.replace('/login') }]
+      );
     }
-    // Navigasi setelah login berhasil akan ditangani secara otomatis
   };
 
   return (
@@ -26,9 +32,9 @@ export default function LoginScreen() {
           source={require('../assets/images/icon.png')}
           style={styles.logo}
         />
-        <ThemedText style={styles.title}>Selamat Datang Kembali!</ThemedText>
+        <ThemedText style={styles.title}>Buat Akun Baru</ThemedText>
         <ThemedText style={styles.subtitle}>
-          Masuk untuk melanjutkan petualangan Anda
+          Satu langkah lagi menuju petualangan Anda
         </ThemedText>
 
         <TextInput
@@ -49,26 +55,14 @@ export default function LoginScreen() {
             placeholderTextColor="#888"
         />
 
-        <Pressable style={styles.button} onPress={onLoginPress}>
-          <RNText style={styles.buttonText}>Login</RNText>
+        <Pressable style={styles.button} onPress={onSignUpPress}>
+          <RNText style={styles.buttonText}>Daftar</RNText>
         </Pressable>
 
-        <Link href="/register" asChild>
-          <Pressable>
-              <RNText style={styles.switchText}>
-                Belum punya akun? Daftar
-              </RNText>
-          </Pressable>
-        </Link>
-
-        <View style={styles.dividerContainer}>
-            <View style={styles.divider} />
-            <RNText style={styles.dividerText}>atau</RNText>
-            <View style={styles.divider} />
-        </View>
-
-        <Pressable style={[styles.button, styles.socialButton]} onPress={handleGoogleSignIn}>
-            <RNText style={styles.buttonText}>Lanjutkan dengan Google</RNText>
+        <Pressable onPress={() => router.replace('/login')}>
+            <RNText style={styles.switchText}>
+              Sudah punya akun? Login
+            </RNText>
         </Pressable>
     </ThemedView>
   );
@@ -126,21 +120,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 20,
   },
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  divider: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#ccc',
-  },
-  dividerText: {
-    marginHorizontal: 10,
-    color: '#888',
-  },
-  socialButton: {
-    backgroundColor: '#4285F4',
-  },
-});
+}); 
