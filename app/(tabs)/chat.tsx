@@ -258,22 +258,61 @@ export default function ChatScreen() {
       <StatusBar barStyle="dark-content" />
       
       <Animated.View style={[{ flex: 1 }, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-        <LinearGradient
-          colors={['#E8F4F8', '#D4E7DD', '#C8DDD1']}
-          style={styles.gradient}
-        >
-        <View style={styles.header}>
-          <View style={styles.headerContent}>
-            <Image source={require('@/assets/images/nusa-ai-logo.png')} style={styles.logo} />
-            <Image source={require('@/assets/images/nusa-ai-text.png')} style={styles.textHeader} />
+        {/* Map Container - Shows after conversation starts */}
+        {showMap && (
+          <View style={styles.mapContainer}>
+            <MapView
+              style={styles.map}
+              region={mapRegion}
+              provider={PROVIDER_GOOGLE}
+              showsUserLocation={true}
+              showsMyLocationButton={true}
+              onRegionChangeComplete={setMapRegion}
+            >
+              {userLocation && (
+                <Marker
+                  coordinate={userLocation}
+                  title="Lokasi Anda"
+                  description="Posisi saat ini"
+                />
+              )}
+              {/* TODO: Add markers for story places */}
+            </MapView>
           </View>
-        </View>
+        )}
+        
+        {/* Chat Panel - Animated height */}
+        <Animated.View style={[
+          styles.chatPanel,
+          { height: showMap ? chatPanelHeight : height }
+        ]}>
+          <LinearGradient
+            colors={['#E8F4F8', '#D4E7DD', '#C8DDD1']}
+            style={styles.gradient}
+          >
+            {/* Header - Show only when map is not visible */}
+            {!showMap && (
+              <View style={styles.header}>
+                <View style={styles.headerContent}>
+                  <Image source={require('@/assets/images/nusa-ai-logo.png')} style={styles.logo} />
+                  <Image source={require('@/assets/images/nusa-ai-text.png')} style={styles.textHeader} />
+                </View>
+              </View>
+            )}
 
-        <KeyboardAvoidingView
-          style={styles.flex1}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
-        >
+            {/* Chat drag handle when map is shown */}
+            {showMap && (
+              <View style={styles.dragHandle}>
+                <View style={styles.dragBar} />
+                <Text style={styles.chatTitle}>Chat Nusavarta</Text>
+              </View>
+            )}
+
+            <KeyboardAvoidingView
+              style={styles.flex1}
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+              keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
+            >
           <ScrollView
             ref={scrollViewRef}
             style={styles.messagesContainer}
@@ -354,7 +393,8 @@ export default function ChatScreen() {
             </View>
           </View>
         </KeyboardAvoidingView>
-      </LinearGradient>
+        </LinearGradient>
+        </Animated.View>
       </Animated.View>
     </SafeAreaView>
   );
@@ -364,6 +404,46 @@ const styles = StyleSheet.create({
     container: { flex: 1, },
     gradient: { flex: 1, },
     flex1: { flex: 1, },
+    
+    // Map styles
+    mapContainer: { 
+      flex: 1,
+      position: 'relative',
+    },
+    map: { 
+      width: '100%', 
+      height: '100%',
+    },
+    
+    // Chat panel styles
+    chatPanel: {
+      backgroundColor: 'white',
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: -2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 5,
+    },
+    dragHandle: {
+      alignItems: 'center',
+      paddingVertical: 12,
+      backgroundColor: 'transparent',
+    },
+    dragBar: {
+      width: 40,
+      height: 4,
+      backgroundColor: '#D0D0D0',
+      borderRadius: 2,
+      marginBottom: 8,
+    },
+    chatTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: '#2C3E4B',
+    },
+    
     header: { paddingHorizontal: 16, paddingVertical: 12, },
     headerContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', },
     logo: { width: 32, height: 32, marginRight: 8, },
