@@ -1,288 +1,167 @@
-import { Feather, Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import { Colors } from '@/constants/Colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { Feather } from '@expo/vector-icons';
+import React from 'react';
 import {
-    Animated,
-    Easing,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
-type Message = {
+type ChatHistory = {
   id: number;
-  text: string;
-  sender: 'user' | 'ai';
+  title: string;
+  lastMessage: string;
   timestamp: Date;
+  messageCount: number;
 };
 
-// Komponen tombol opsi chat
-const ChatButton = ({ onPress, text }: { onPress: () => void; text: string }) => (
-  <TouchableOpacity style={styles.chatButton} onPress={onPress}>
-    <Text style={styles.chatButtonText}>{text}</Text>
-  </TouchableOpacity>
-);
+// Data dummy untuk riwayat perjalanan
+const chatHistory: ChatHistory[] = [
+    {
+      id: 1,
+      title: 'Museum di Jakarta',
+      lastMessage: 'Terima kasih atas rekomendasinya!',
+      timestamp: new Date('2024-01-01T10:30:00'),
+      messageCount: 12,
+    },
+    {
+      id: 2,
+      title: 'Wisata Budaya Yogyakarta',
+      lastMessage: 'Saya akan pergi ke Borobudur besok',
+      timestamp: new Date('2024-01-01T09:15:00'),
+      messageCount: 8,
+    },
+    {
+      id: 3,
+      title: 'Destinasi di Bali',
+      lastMessage: 'Apakah ada rekomendasi tempat makan?',
+      timestamp: new Date('2023-12-31T16:45:00'),
+      messageCount: 15,
+    },
+];
 
-export default function ChatScreen() {
-  const { message } = useLocalSearchParams(); // Mengambil parameter dari navigasi
-  
-  // State dan Refs untuk animasi dan fungsionalitas
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(50)).current;
-  const typingAnim = useRef(new Animated.Value(0)).current;
-  
-  const [isTyping, setIsTyping] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [inputText, setInputText] = useState('');
-  const scrollViewRef = useRef<ScrollView>(null);
 
-  // Animasi masuk saat halaman pertama kali dibuka
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 600,
-        easing: Easing.out(Easing.quad),
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 600,
-        easing: Easing.out(Easing.back(1.2)),
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [fadeAnim, slideAnim]);
+export default function HistoryScreen() {
+  const colorScheme = useColorScheme();
+  const themeColors = Colors[colorScheme ?? 'light'];
 
-  // Auto-scroll ke pesan terbaru
-  useEffect(() => {
-    scrollViewRef.current?.scrollToEnd({ animated: true });
-  }, [messages]);
 
-  // Logika untuk menangani pesan pertama yang dikirim dari halaman home
-  useEffect(() => {
-    if (message && typeof message === 'string') {
-      const newMessage: Message = {
-        id: Date.now(),
-        text: message,
-        sender: 'user',
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, newMessage]);
-      
-      // Menampilkan indikator "mengetik" dan simulasi respons AI
-      simulateAIResponse();
-    }
-  }, [message]);
-  
-  // Fungsi untuk mengirim pesan
-  const handleSend = () => {
-    if (inputText.trim()) {
-      const newMessage: Message = {
-        id: Date.now(),
-        text: inputText.trim(),
-        sender: 'user',
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, newMessage]);
-      setInputText('');
-      
-      // Menampilkan indikator "mengetik" dan simulasi respons AI
-      simulateAIResponse();
-    }
+  const formatDate = (date: Date) => {
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 1) return 'Today';
+    if (diffDays === 2) return 'Yesterday';
+    if (diffDays <= 7) return `${diffDays} days ago`;
+    
+    return date.toLocaleDateString('id-ID', { 
+      day: 'numeric', 
+      month: 'short' 
+    });
   };
 
-  const simulateAIResponse = () => {
-    setIsTyping(true);
-      
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(typingAnim, { toValue: 1, duration: 600, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-          Animated.timing(typingAnim, { toValue: 0, duration: 600, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-        ])
-      ).start();
-      
-      setTimeout(() => {
-        setIsTyping(false);
-        typingAnim.stopAnimation();
-        typingAnim.setValue(0);
-        
-        const aiResponse: Message = {
-          id: Date.now() + 1,
-          text: 'Tentu, saya akan bantu. Apakah Anda ingin rekomendasi tempat wisata di sekitar Bandung?',
-          sender: 'ai',
-          timestamp: new Date(),
-        };
-        setMessages(prev => [...prev, aiResponse]);
-      }, 2000);
-  }
-
-  const handleOptionPress = (option: string) => {
-    const newMessage: Message = {
-      id: Date.now(),
-      text: option,
-      sender: 'user',
-      timestamp: new Date(),
-    };
-    setMessages(prev => [...prev, newMessage]);
-    simulateAIResponse(); // Simulasi respons setelah opsi dipilih
+  const handleChatPress = (chatId: number) => {
+    // Di Fase 3, ini akan membuka detail rute di peta
+    console.log('Open chat:', chatId);
   };
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+  const handleDeleteChat = (chatId: number) => {
+    // Di Fase 3, ini akan menghapus riwayat dari Firestore
+    console.log('Delete chat:', chatId);
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
+      <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} />
       
-      <Animated.View style={[{ flex: 1 }, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-        <LinearGradient
-          colors={['#E8F4F8', '#D4E7DD', '#C8DDD1']}
-          style={styles.gradient}
-        >
-        <View style={styles.header}>
-          <View style={styles.headerContent}>
-            <Image source={require('@/assets/images/nusa-ai-logo.png')} style={styles.logo} />
-            <Image source={require('@/assets/images/nusa-ai-text.png')} style={styles.textHeader} />
-          </View>
-        </View>
+      <View style={[styles.header, { backgroundColor: themeColors.background, borderBottomColor: themeColors.border }]}>
+        <Text style={[styles.headerTitle, { color: themeColors.text }]}>Chat History</Text>
+        <TouchableOpacity style={styles.headerButton}>
+          <Feather name="search" size={20} color={themeColors.icon} />
+        </TouchableOpacity>
+      </View>
 
-        <KeyboardAvoidingView
-          style={styles.flex1}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
-        >
-          <ScrollView
-            ref={scrollViewRef}
-            style={styles.messagesContainer}
-            contentContainerStyle={styles.messagesContent}
-            showsVerticalScrollIndicator={false}
+      <ScrollView 
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        {chatHistory.map((chat) => (
+          <TouchableOpacity
+            key={chat.id}
+            style={[styles.chatItem, { 
+              backgroundColor: themeColors.background,
+              borderBottomColor: themeColors.border 
+            }]}
+            onPress={() => handleChatPress(chat.id)}
           >
-            {messages.map((msg, index) => (
-              <View key={msg.id}>
-                {msg.sender === 'user' ? (
-                  <View style={styles.userMessageWrapper}>
-                    <View style={styles.userMessageContainer}>
-                      <View style={styles.userMessageHeader}>
-                        <Text style={styles.senderName}>You</Text>
-                        <Text style={styles.timestamp}>{formatTime(msg.timestamp)}</Text>
-                      </View>
-                      <View style={styles.userMessageBubble}>
-                        <Text style={styles.userMessageText}>{msg.text}</Text>
-                      </View>
-                    </View>
-                    <View style={styles.userAvatar}>
-                      <Image source={require('@/assets/images/profile-icon.png')} style={styles.avatarIcon}/>
-                    </View>
-                  </View>
-                ) : (
-                  <View style={styles.aiMessageWrapper}>
-                    <View style={styles.aiAvatar}>
-                      <Image source={require('@/assets/images/nusa-ai-logo.png')} style={styles.avatarIcon}/>
-                    </View>
-                    <View style={styles.aiMessageContainer}>
-                      <View style={styles.aiMessageHeader}>
-                        <Text style={styles.senderName}>nusaAI</Text>
-                        <Text style={styles.timestamp}>{formatTime(msg.timestamp)}</Text>
-                      </View>
-                      <View style={styles.aiMessageBubble}>
-                        <Text style={styles.aiMessageText}>{msg.text}</Text>
-                      </View>
-                      
-                      {index === messages.length - 1 && !isTyping && (
-                        <View style={styles.actionButtons}>
-                          <ChatButton onPress={() => handleOptionPress('Ya, tentu')} text="Ya, tentu" />
-                          <ChatButton onPress={() => handleOptionPress('Tidak, terima kasih')} text="Tidak" />
-                        </View>
-                      )}
-                    </View>
-                  </View>
-                )}
+            <View style={styles.chatInfo}>
+              <View style={styles.chatHeader}>
+                <Text style={[styles.chatTitle, { color: themeColors.text }]} numberOfLines={1}>
+                  {chat.title}
+                </Text>
+                <Text style={[styles.chatTime, { color: themeColors.icon }]}>
+                  {formatDate(chat.timestamp)}
+                </Text>
               </View>
-            ))}
-            
-            {isTyping && (
-              <View style={styles.typingContainer}>
-                 <View style={styles.aiAvatar}>
-                    <Image source={require('@/assets/images/nusa-ai-logo.png')} style={styles.avatarIcon}/>
-                </View>
-                <View style={styles.typingBubble}>
-                  <Animated.View style={[ styles.typingDot, { opacity: typingAnim.interpolate({ inputRange: [0, 1], outputRange: [0.3, 1] }) }]}/>
-                  <Animated.View style={[ styles.typingDot, { opacity: typingAnim.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.3, 1, 0.3] }) }]}/>
-                  <Animated.View style={[ styles.typingDot, { opacity: typingAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 0.3] }) }]}/>
+              
+              <View style={styles.chatDetails}>
+                <Text style={[styles.lastMessage, { color: themeColors.icon }]} numberOfLines={1}>
+                  {chat.lastMessage}
+                </Text>
+                <View style={styles.messageCount}>
+                  <Text style={styles.messageCountText}>{chat.messageCount}</Text>
                 </View>
               </View>
-            )}
-          </ScrollView>
-
-          <View style={styles.inputContainer}>
-            <View style={styles.inputRow}>
-              <TouchableOpacity style={styles.attachButton}><Feather name="paperclip" size={20} color="#999" /></TouchableOpacity>
-              <TextInput
-                style={styles.textInput}
-                placeholder="Message nusaAI..."
-                placeholderTextColor="#999"
-                value={inputText}
-                onChangeText={setInputText}
-                multiline
-                textAlignVertical="center"
-              />
-              <TouchableOpacity style={styles.micButton}><Feather name="mic" size={20} color="#999" /></TouchableOpacity>
-              <TouchableOpacity style={styles.sendButton} onPress={handleSend}><Ionicons name="arrow-up" size={20} color="white" /></TouchableOpacity>
             </View>
+            
+            <TouchableOpacity 
+              style={styles.deleteButton}
+              onPress={() => handleDeleteChat(chat.id)}
+            >
+              <Feather name="trash-2" size={16} color="#FF6B6B" />
+            </TouchableOpacity>
+          </TouchableOpacity>
+        ))}
+        
+        {chatHistory.length === 0 && (
+          <View style={styles.emptyState}>
+            <Feather name="message-circle" size={48} color={themeColors.icon} />
+            <Text style={[styles.emptyTitle, { color: themeColors.text }]}>
+              No chat history yet
+            </Text>
+            <Text style={[styles.emptySubtitle, { color: themeColors.icon }]}>
+              Start a conversation with nusaAI to see your chat history here
+            </Text>
           </View>
-        </KeyboardAvoidingView>
-      </LinearGradient>
-      </Animated.View>
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, },
-  gradient: { flex: 1, },
-  flex1: { flex: 1, },
-  header: { paddingHorizontal: 16, paddingVertical: 12, },
-  headerContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', },
-  logo: { width: 32, height: 32, marginRight: 8, },
-  textHeader: { width: 160, height: 35, marginRight: 8, },
-  messagesContainer: { flex: 1, },
-  messagesContent: { padding: 16, paddingBottom: 20, },
-  userMessageWrapper: { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 16, alignItems: 'flex-start', },
-  userMessageContainer: { flex: 1, alignItems: 'flex-end', marginRight: 8, },
-  userMessageHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 4, },
-  userAvatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#E3F2FD', justifyContent: 'center', alignItems: 'center', },
-  userMessageBubble: { maxWidth: '80%', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#4F7444', borderRadius: 20, borderTopRightRadius: 8, },
-  userMessageText: { fontSize: 14, lineHeight: 20, color: 'white', },
-  aiMessageWrapper: { flexDirection: 'row', justifyContent: 'flex-start', marginBottom: 16, alignItems: 'flex-start', },
-  aiMessageContainer: { flex: 1, alignItems: 'flex-start', marginLeft: 8, },
-  aiMessageHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 4, },
-  aiAvatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#F5F5F5', justifyContent: 'center', alignItems: 'center', },
-  avatarIcon: { width: 20, height: 20, },
-  aiMessageBubble: { maxWidth: '80%', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: 'white', borderRadius: 20, borderTopLeftRadius: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 1, }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2, },
-  aiMessageText: { fontSize: 14, lineHeight: 20, color: '#2C3E4B', },
-  senderName: { fontSize: 12, fontWeight: '600', marginRight: 8, color: '#2C3E4B', },
-  timestamp: { fontSize: 10, color: '#999', },
-  actionButtons: { flexDirection: 'row', marginTop: 8, gap: 8, },
-  chatButton: { paddingHorizontal: 16, paddingVertical: 8, backgroundColor: 'white', borderRadius: 16, borderWidth: 1, borderColor: '#E0E0E0', shadowColor: '#000', shadowOffset: { width: 0, height: 1, }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2, },
-  chatButtonText: { fontSize: 14, color: '#2C3E4B', fontWeight: '500', },
-  inputContainer: { paddingHorizontal: 16, paddingVertical: 15, paddingBottom: 55, backgroundColor: 'transparent', },
-  inputRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, },
-  attachButton: { padding: 8, paddingBottom: 13, },
-  textInput: { flex: 1, minHeight: 40, maxHeight: 100, backgroundColor: 'white', borderWidth: 1, borderColor: '#E0E0E0', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 10, fontSize: 14, color: '#2C3E4B', shadowColor: '#000', shadowOffset: { width: 0, height: 1, }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2, paddingTop: 10},
-  micButton: { padding: 8, paddingBottom: 13, },
-  sendButton: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#4F7444', justifyContent: 'center', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2, }, shadowOpacity: 0.2, shadowRadius: 3, elevation: 3, marginBottom: 6, },
-  typingContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 16, marginLeft: 8 },
-  typingBubble: { backgroundColor: '#f0f0f0', paddingHorizontal: 16, paddingVertical: 12, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 4, marginLeft: 8, },
-  typingDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#666', marginHorizontal: 2, },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, },
+  headerTitle: { fontSize: 18, fontWeight: '600', },
+  headerButton: { padding: 8, },
+  content: { flex: 1, },
+  chatItem: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, },
+  chatInfo: { flex: 1, },
+  chatHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4, },
+  chatTitle: { fontSize: 16, fontWeight: '600', flex: 1, marginRight: 8, },
+  chatTime: { fontSize: 12, },
+  chatDetails: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', },
+  lastMessage: { fontSize: 14, flex: 1, marginRight: 8, },
+  messageCount: { backgroundColor: '#4CAF50', borderRadius: 10, paddingHorizontal: 6, paddingVertical: 2, minWidth: 20, alignItems: 'center', },
+  messageCountText: { color: 'white', fontSize: 12, fontWeight: '600', },
+  deleteButton: { padding: 8, marginLeft: 8, },
+  emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32, paddingVertical: 48, },
+  emptyTitle: { fontSize: 18, fontWeight: '600', marginTop: 16, marginBottom: 8, },
+  emptySubtitle: { fontSize: 14, textAlign: 'center', lineHeight: 20, },
 });

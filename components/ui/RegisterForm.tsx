@@ -68,7 +68,7 @@ export const RegisterForm: React.FC = () => {
           [
             {
               text: 'Get Started',
-              onPress: () => router.replace('/(tabs)')
+              onPress: () => router.replace('/home')
             }
           ]
         );

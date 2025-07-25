@@ -1,8 +1,11 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from 'firebase/auth';
+// Hanya initializeAuth yang diimpor dari 'firebase/auth'
+import { initializeAuth } from 'firebase/auth'; 
+// getReactNativePersistence diimpor dari path spesifik 'firebase/auth/react-native'
+import { getReactNativePersistence } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
-// Mengambil konfigurasi dari environment variables (.env)
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -13,13 +16,13 @@ const firebaseConfig = {
   measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-
-// Inisialisasi Firebase
 const app = initializeApp(firebaseConfig);
 
-// Inisialisasi layanan Firebase yang akan digunakan
-const auth = getAuth(app);
+// Inisialisasi Auth dengan persistence
+const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(ReactNativeAsyncStorage)
+});
+
 const db = getFirestore(app);
 
-// Ekspor layanan agar bisa digunakan di file lain
 export { auth, db };

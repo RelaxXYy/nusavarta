@@ -1,6 +1,6 @@
 // app/index.tsx
 
-import Colors from '@/constants/Colors';
+import {Colors} from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { router } from 'expo-router';
 import { useEffect } from 'react';
