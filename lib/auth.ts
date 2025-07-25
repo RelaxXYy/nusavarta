@@ -4,14 +4,7 @@ import {
   signOut,
 } from 'firebase/auth';
 import { auth } from '../firebaseConfig'; // Impor dari file konfigurasi kita
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
-
-// Konfigurasi Google Sign-In
-// Web Client ID bisa didapatkan dari file google-services.json Anda
-// cari "client_type": 3
-GoogleSignin.configure({
-  webClientId: '234527295517-fn85qkkar6scrst4nt21q0lq9lp3i0l1.apps.googleusercontent.com', 
-});
+// import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 // Helper function to check for Firebase-like errors
 const isFirebaseError = (error: unknown): error is { code: string; message: string } => {

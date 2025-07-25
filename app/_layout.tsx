@@ -45,12 +45,9 @@ function RootLayoutNav() {
       <Stack>
         {/* Halaman utama aplikasi (dengan tab) */}
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        
-        {/* Halaman login dan register, ditampilkan sebagai modal */}
-        <Stack.Screen name="login" options={{ headerShown: false, presentation: 'modal' }} />
-        <Stack.Screen name="register" options={{ headerShown: false, presentation: 'modal' }} />
-
-        {/* Halaman not found */}
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="login" options={{ headerShown: false }} />
+        <Stack.Screen name="register" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
   );
