@@ -13,10 +13,17 @@ app.use(cors());
 app.use(express.json());
 
 app.get('/', (req, res) => {
-    res.send('Server AI Garudie berjalan!');
+    res.json({ message: 'Server AI Garudie berjalan!', status: 'OK' });
 });
 
 app.use('/api', chatRouter);
 app.use('/api', placesRouter);
+
+// For Vercel, we need to export the app
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(port, () => {
+        console.log(`Server running on port ${port}`);
+    });
+}
 
 export default app;

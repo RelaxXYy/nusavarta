@@ -2,14 +2,17 @@
   "version": 2,
   "builds": [
     {
-      "src": "dist/index.js",
+      "src": "src/index.ts",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "dist/index.js"
+      "src": "/(.*)",
+      "dest": "src/index.ts"
     }
-  ]
+  ],
+  "env": {
+    "FIREBASE_SERVICE_ACCOUNT": "@firebase_service_account"
+  }
 }

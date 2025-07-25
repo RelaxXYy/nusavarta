@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getStoryPlaces } from '../services/firestoreService';
+import { getStoryPlaces, type StoryPlace } from '../services/firestoreService.js';
 
 const router = Router();
 
@@ -7,11 +7,11 @@ router.get('/story-places', async (req, res) => {
     try {
         const places = await getStoryPlaces();
 
-        // Mengelompokkan data berdasarkan kategori
+        // Mengelompokkan data berdasarkan kategori dengan explicit typing
         const groupedPlaces = {
-            landmarks: places.filter(p => p.category === 'landmark'),
-            cultures: places.filter(p => p.category === 'culture'),
-            museums: places.filter(p => p.category === 'museum'),
+            landmarks: places.filter((p: StoryPlace) => p.category === 'landmark'),
+            cultures: places.filter((p: StoryPlace) => p.category === 'culture'),
+            museums: places.filter((p: StoryPlace) => p.category === 'museum'),
         };
 
         res.status(200).json(groupedPlaces);
