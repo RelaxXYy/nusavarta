@@ -1,6 +1,11 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
+import { getAiResponse, getCulturalRouteDecision } from '../src/services/gemini.service';
+import { getDirectionsWithWaypoints } from '../src/services/maps.service';
 
-export default function handler(req: VercelRequest, res: VercelResponse) {
+// Simple in-memory storage for user contexts (for demo purposes)
+const userContexts: { [userId: string]: any } = {};
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Enable CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -22,12 +27,34 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
             return res.status(400).json({ error: 'Pesan tidak boleh kosong.' });
         }
 
-        // Simple response for testing
-        const response = `Halo! Anda mengatakan: "${message}". Ini adalah respons dari server Nusavarta AI.`;
+        const context = userContexts[userId];
+        const lowerCaseMessage = message.toLowerCase();
+
+        // Alur 2: Merespons konfirmasi pengguna
+        if (context && context.awaitingConfirmation) {
+            const wantsCulture = ['ya', 'mau', 'boleh', 'tertarik', 'tentu'].some(word => lowerCaseMessage.includes(word));
+            const routeData = await getDirectionsWithWaypoints(context.origin, context.destination, wantsCulture);
+            delete userContexts[userId]; // Hapus konteks setelah selesai
+            return res.status(200).json({ routeData });
+        }
+
+        // Alur 1: Mendeteksi permintaan rute baru
+        const routeDecision = await getCulturalRouteDecision(message);
+        if (routeDecision.isRouteRequest) {
+            userContexts[userId] = {
+                awaitingConfirmation: true,
+                origin: routeDecision.origin,
+                destination: routeDecision.destination,
+            };
+            return res.status(200).json({ reply: routeDecision.aiReply });
+        }
         
-        res.status(200).json({ reply: response });
+        // Alur 3: Jawaban AI biasa menggunakan Gemini
+        const reply = await getAiResponse(message);
+        return res.status(200).json({ reply });
+
     } catch (error) {
         console.error('Chat error:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ error: 'Aduh, terjadi kesalahan di pusat data saya.' });
     }
 }
