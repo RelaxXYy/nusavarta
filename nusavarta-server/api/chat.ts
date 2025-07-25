@@ -1,4 +1,3 @@
-// filepath: c:\Users\aidan\Hackathon\GarudaHack 6.0\nusavarta\nusavarta-server\api\chat.ts
 import { VercelRequest, VercelResponse } from '@vercel/node';
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
@@ -17,14 +16,14 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     try {
-        const { message } = req.body;
+        const { message, userId = 'defaultUser' } = req.body;
         
         if (!message) {
-            return res.status(400).json({ error: 'Message is required' });
+            return res.status(400).json({ error: 'Pesan tidak boleh kosong.' });
         }
 
         // Simple response for testing
-        const response = `Halo! Anda mengatakan: "${message}". Ini adalah respons dari server Nusavarta.`;
+        const response = `Halo! Anda mengatakan: "${message}". Ini adalah respons dari server Nusavarta AI.`;
         
         res.status(200).json({ reply: response });
     } catch (error) {
