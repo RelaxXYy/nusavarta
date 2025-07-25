@@ -1,3 +1,4 @@
+// filepath: c:\Users\aidan\Hackathon\GarudaHack 6.0\nusavarta\nusavarta-server\api\chat.ts
 import { VercelRequest, VercelResponse } from '@vercel/node';
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
@@ -25,7 +26,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
         // Simple response for testing
         const response = `Halo! Anda mengatakan: "${message}". Ini adalah respons dari server Nusavarta.`;
         
-        res.json({ reply: response });
+        res.status(200).json({ reply: response });
     } catch (error) {
         console.error('Chat error:', error);
         res.status(500).json({ error: 'Internal server error' });
