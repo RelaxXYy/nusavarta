@@ -8,6 +8,12 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     res.status(200).json({ 
         message: 'Server AI Garudie berjalan!', 
         status: 'OK',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        endpoints: {
+            health: '/api/',
+            chat: '/api/chat',
+            test: '/api/test'
+        },
+        version: '1.0.0'
     });
 }
