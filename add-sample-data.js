@@ -21,42 +21,42 @@ const sampleData = [
   {
     title: "Gedung Sate",
     location: "Bandung, Jawa Barat",
-    image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400",
+    image: "https://images.unsplash.com/photo-1555400113-28c02a7ee8b4?w=400&h=300&fit=crop&auto=format&q=80",
     description: "Gedung Sate adalah ikon Kota Bandung yang dibangun pada masa kolonial Belanda tahun 1920. Dinamakan Gedung Sate karena bentuk menara yang menyerupai tusuk sate.",
     category: "landmark"
   },
   {
     title: "Candi Borobudur",
     location: "Magelang, Jawa Tengah",
-    image: "https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=400",
+    image: "https://images.unsplash.com/photo-1539650116574-75c0c6d73bb4?w=400&h=300&fit=crop&auto=format&q=80",
     description: "Candi Buddha terbesar di dunia yang dibangun pada abad ke-8-9. Merupakan warisan dunia UNESCO dengan 2.672 panel relief dan 504 arca Buddha.",
     category: "temple"
   },
   {
     title: "Batik Indonesia",
     location: "Jawa (Solo, Yogyakarta, Pekalongan)",
-    image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400",
+    image: "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&h=300&fit=crop&auto=format&q=80",
     description: "Batik adalah seni membuat kain dengan teknik resist wax yang telah diakui UNESCO sebagai Warisan Budaya Tak Benda Dunia.",
     category: "culture"
   },
   {
     title: "Museum Nasional Indonesia",
     location: "Jakarta Pusat, DKI Jakarta",
-    image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400",
+    image: "https://images.unsplash.com/photo-1566127992631-137a642a90f4?w=400&h=300&fit=crop&auto=format&q=80",
     description: "Museum Nasional Indonesia adalah museum arkeologi, sejarah, etnografi, dan geografi yang terletak di Jakarta Pusat.",
     category: "museum"
   },
   {
     title: "Candi Prambanan", 
     location: "Yogyakarta-Klaten, Jawa Tengah",
-    image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400",
+    image: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=400&h=300&fit=crop&auto=format&q=80",
     description: "Kompleks candi Hindu terbesar di Indonesia yang dibangun pada abad ke-9. Terdiri dari 240 candi dengan 3 candi utama untuk Trimurti.",
     category: "temple"
   },
   {
     title: "Wayang Kulit",
     location: "Jawa",
-    image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400",
+    image: "https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=400&h=300&fit=crop&auto=format&q=80",
     description: "Wayang kulit adalah seni pertunjukan tradisional Indonesia menggunakan boneka kulit yang dimainkan oleh dalang.",
     category: "culture"
   }

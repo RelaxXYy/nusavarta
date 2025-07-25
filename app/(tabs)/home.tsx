@@ -27,7 +27,11 @@ const DetailModal = ({ visible, item, onClose }: {
     item: StoryPlace | null,
     onClose: () => void
 }) => {
+    const [imageError, setImageError] = useState(false);
+    
     if (!item) return null;
+
+    console.log('DetailModal rendering for:', item.title, 'with image URL:', item.image);
 
     return (
         <Modal
@@ -48,8 +52,24 @@ const DetailModal = ({ visible, item, onClose }: {
                     </TouchableOpacity>
 
                     <View style={styles.modalImageContainer}>
-                        {/* Menggunakan uri untuk memuat gambar dari URL */}
-                        <Image source={{ uri: item.image }} style={styles.modalImage} />
+                        {!imageError && item.image ? (
+                            <Image 
+                                source={{ uri: item.image }} 
+                                style={styles.modalImage}
+                                onError={(error) => {
+                                    console.log('Modal image failed to load for', item.title, ':', error.nativeEvent?.error || 'Unknown error');
+                                    setImageError(true);
+                                }}
+                                onLoad={() => {
+                                    console.log('Modal image loaded successfully for:', item.title);
+                                }}
+                            />
+                        ) : (
+                            <Image 
+                                source={require('@/assets/images/borobudur-bg.png')} 
+                                style={styles.modalImage}
+                            />
+                        )}
                         <LinearGradient
                             colors={['transparent', 'rgba(0,0,0,0.6)']}
                             style={styles.modalImageGradient}
@@ -74,13 +94,36 @@ const DetailModal = ({ visible, item, onClose }: {
 const ItemCard = ({ item, onPress }: {
     item: StoryPlace,
     onPress: () => void
-}) => (
-    <TouchableOpacity style={styles.cardContainer} onPress={onPress}>
-        <Image source={{ uri: item.image }} style={styles.cardImage} />
-        <LinearGradient colors={['transparent', 'rgba(0,0,0,0.8)']} style={styles.cardGradient} />
-        <Text style={styles.cardTitle}>{item.title}</Text>
-    </TouchableOpacity>
-);
+}) => {
+    const [imageError, setImageError] = useState(false);
+    
+    console.log('ItemCard rendering for:', item.title, 'with image URL:', item.image);
+    
+    return (
+        <TouchableOpacity style={styles.cardContainer} onPress={onPress}>
+            {!imageError && item.image ? (
+                <Image 
+                    source={{ uri: item.image }} 
+                    style={styles.cardImage}
+                    onError={(error) => {
+                        console.log('Image failed to load for', item.title, ':', error.nativeEvent?.error || 'Unknown error');
+                        setImageError(true);
+                    }}
+                    onLoad={() => {
+                        console.log('Image loaded successfully for:', item.title);
+                    }}
+                />
+            ) : (
+                <Image 
+                    source={require('@/assets/images/borobudur-bg.png')} 
+                    style={styles.cardImage}
+                />
+            )}
+            <LinearGradient colors={['transparent', 'rgba(0,0,0,0.8)']} style={styles.cardGradient} />
+            <Text style={styles.cardTitle}>{item.title}</Text>
+        </TouchableOpacity>
+    );
+};
 const Section = ({ title, data, onItemPress }: {
     title: string,
     data: StoryPlace[],
@@ -136,34 +179,42 @@ export default function HomeScreen() {
                 
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
-                    allPlaces.push({
+                    const place = {
                         id: doc.id,
                         title: data.title || '',
                         location: data.location || '',
                         image: data.image || '',
                         description: data.description || '',
                         category: data.category || 'landmark'
+                    };
+                    console.log('Loaded place from Firestore:', place.title, 'Image URL:', place.image);
+                    allPlaces.push(place);
+                });
+                
+                console.log('Total places loaded from Firestore:', allPlaces.length);
+                
+                if (allPlaces.length > 0) {
+                    // Group by category
+                    const landmarks = allPlaces.filter(place => place.category === 'landmark');
+                    const cultures = allPlaces.filter(place => place.category === 'culture');
+                    const museums = allPlaces.filter(place => place.category === 'museum');
+                    const temples = allPlaces.filter(place => place.category === 'temple');
+                    
+                    setLandmarks(landmarks);
+                    setCultures(cultures);
+                    setMuseums(museums);
+                    setTemples(temples);
+                    
+                    console.log('Data loaded from Firestore:', {
+                        landmarks: landmarks.length,
+                        cultures: cultures.length,
+                        museums: museums.length,
+                        temples: temples.length,
+                        total: allPlaces.length
                     });
-                });
-                
-                // Group by category
-                const landmarks = allPlaces.filter(place => place.category === 'landmark');
-                const cultures = allPlaces.filter(place => place.category === 'culture');
-                const museums = allPlaces.filter(place => place.category === 'museum');
-                const temples = allPlaces.filter(place => place.category === 'temple');
-                
-                setLandmarks(landmarks);
-                setCultures(cultures);
-                setMuseums(museums);
-                setTemples(temples);
-                
-                console.log('Data loaded from Firestore:', {
-                    landmarks: landmarks.length,
-                    cultures: cultures.length,
-                    museums: museums.length,
-                    temples: temples.length,
-                    total: allPlaces.length
-                });
+                } else {
+                    throw new Error('No data found in Firestore');
+                }
                 
             } catch (error) {
                 console.error("Error fetching story places from Firestore:", error);
@@ -175,7 +226,7 @@ export default function HomeScreen() {
                             id: "1",
                             title: "Gedung Sate",
                             location: "Bandung, Jawa Barat",
-                            image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400",
+                            image: "https://picsum.photos/400/300?random=1",
                             description: "Gedung Sate adalah ikon Kota Bandung yang dibangun pada masa kolonial Belanda tahun 1920. Dinamakan Gedung Sate karena bentuk menara yang menyerupai tusuk sate.",
                             category: "landmark" as const
                         }
@@ -185,7 +236,7 @@ export default function HomeScreen() {
                             id: "2",
                             title: "Batik Indonesia",
                             location: "Jawa (Solo, Yogyakarta, Pekalongan)",
-                            image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400",
+                            image: "https://picsum.photos/400/300?random=2",
                             description: "Batik adalah seni membuat kain dengan teknik resist wax yang telah diakui UNESCO sebagai Warisan Budaya Tak Benda Dunia.",
                             category: "culture" as const
                         }
@@ -195,7 +246,7 @@ export default function HomeScreen() {
                             id: "3",
                             title: "Museum Nasional Indonesia",
                             location: "Jakarta Pusat, DKI Jakarta",
-                            image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400",
+                            image: "https://picsum.photos/400/300?random=3",
                             description: "Museum Nasional Indonesia adalah museum arkeologi, sejarah, etnografi, dan geografi yang terletak di Jakarta Pusat.",
                             category: "museum" as const
                         }
@@ -205,7 +256,7 @@ export default function HomeScreen() {
                             id: "4",
                             title: "Candi Borobudur",
                             location: "Magelang, Jawa Tengah",
-                            image: "https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=400",
+                            image: "https://picsum.photos/400/300?random=4",
                             description: "Candi Buddha terbesar di dunia yang dibangun pada abad ke-8-9. Merupakan warisan dunia UNESCO.",
                             category: "temple" as const
                         }
@@ -218,10 +269,12 @@ export default function HomeScreen() {
                 setMuseums(fallbackData.museums);
                 setTemples(fallbackData.temples);
                 
-                Alert.alert(
-                    "Info", 
-                    "Menggunakan data contoh. Tambahkan data ke Firestore collection 'story_places' untuk data dinamis."
-                );
+                console.log('Fallback data set:', {
+                    landmarks: fallbackData.landmarks.length,
+                    cultures: fallbackData.cultures.length,
+                    museums: fallbackData.museums.length,
+                    temples: fallbackData.temples.length
+                });
             } finally {
                 setIsLoading(false);
                 // Animasikan konten masuk setelah loading selesai
