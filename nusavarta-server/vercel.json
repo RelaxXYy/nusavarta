@@ -4,5 +4,10 @@
     "api/*.ts": {
       "runtime": "@vercel/node@3.0.0"
     }
-  }
+  },
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": null,
+  "outputDirectory": "dist"
 }
